@@ -16,24 +16,27 @@
 
 			const targetNumber = parseInt(document.getElementById('target-number').value);
 
-			// Sort the items in descending order based on their value
-			items.sort((a, b) => b.value - a.value);
+			// Initialize the dynamic programming table.
+			const dp = new Array(targetNumber + 1).fill(0);
 
-			// Loop through the items and add them to the list if possible
-			let list = [];
-			let totalValue = 0;
-			while (totalValue < targetNumber) {
-				let itemAdded = false;
-				for (let i = 0; i < items.length; i++) {
-					if (items[i].value <= targetNumber - totalValue) {
-						list.push(items[i]);
-						totalValue += items[i].value;
-						itemAdded = true;
-						break;
+			// Fill in the table using dynamic programming.
+			for (let i = 0; i <= targetNumber; i++) {
+				for (let j = 0; j < items.length; j++) {
+					const { name, value } = items[j];
+					if (value <= i) {
+						dp[i] = Math.max(dp[i], dp[i - value] + value);
 					}
 				}
-				if (!itemAdded) {
-					break;
+			}
+
+			// Backtrack through the table to generate the list.
+			let i = targetNumber;
+			const list = [];
+			for (let j = items.length - 1; j >= 0 && i > 0; j--) {
+				const { name, value } = items[j];
+				while (dp[i - value] + value >= dp[i] && i - value >= 0) {
+					list.push({ name, value });
+					i -= value;
 				}
 			}
 
@@ -52,7 +55,7 @@
 <body>
 	<h1>Super Duper Money Optimizer</h1>
 	<p>Type in your remaining balance and click generate.</p>
-	<label for="target-number">Remaining Balance: $</label>
+	<label for="target-number">Remaining Balance (in cents): ¢</label>
 	<input type="number" id="target-number">
 	<button onclick="generateList()">Generate</button>
 	<ul id="list"></ul>
